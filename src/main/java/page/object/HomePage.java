@@ -21,11 +21,11 @@ public class HomePage {
     //локатор раздела "Начинки"
     private static final By SECTION_FILLINGS = By.xpath(".//span[@class='text text_type_main-default' and text()='Начинки']");
     //локатор текста "Булки"
-    private static final By TEXT_BUNS = By.xpath("//div[@class='BurgerIngredients_ingredients__menuContainer__Xu3Mo']//h2[text()='Булки']");
+    private static final By TEXT_BUNS = By.xpath(".//div[contains(@class, 'tab_tab_type_current__2BEPc')]/span[contains(text(), 'Булки')]");
     //локатор текста "Соусы"
-    private static final By TEXT_SAUCES = By.xpath("//div[@class='BurgerIngredients_ingredients__menuContainer__Xu3Mo']//h2[text()='Соусы']");
+    private static final By TEXT_SAUCES = By.xpath(".//div[contains(@class, 'tab_tab_type_current__2BEPc')]/span[contains(text(), 'Соусы')]");
     //локатор текста "Начинки"
-    private static final By TEXT_FILLINGS = By.xpath("//div[@class='BurgerIngredients_ingredients__menuContainer__Xu3Mo']//h2[text()='Начинки']");
+    private static final By TEXT_FILLINGS = By.xpath(".//div[contains(@class, 'tab_tab_type_current__2BEPc')]/span[contains(text(), 'Начинки')]");
 
     private WebDriver driver;
 

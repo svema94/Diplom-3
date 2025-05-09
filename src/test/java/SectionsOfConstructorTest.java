@@ -10,7 +10,6 @@ import factory.WebDriverFactory;
 import page.object.HomePage;
 import static constant.Browser.*;
 
-
 public class SectionsOfConstructorTest {
     private WebDriver driver;
     private HomePage homePage;
@@ -27,13 +26,24 @@ public class SectionsOfConstructorTest {
     }
 
     @Test
-    @DisplayName("Проверка перехода к разделу \"Булки\"")
-    @Description("Тест проверяет, что текст раздела \"Булки\" находится в области видимости.")
+    @DisplayName("Проверка перехода к разделу \"Булки\" после клика по разделу \"Соусы\"")
+    @Description("Тест проверяет, что текст раздела \"Булки\" находится в области видимости после перехода из раздела \"Соусы\".")
     public void isDisplayedSectionBunsTest() {
+        // Нажимаем на раздел "Соусы"
         homePage.clickSectionSauces();
+
+        // Получаем элемент раздела "Соусы" и проверяем его видимость
+        WebElement saucesElement = homePage.elementTextSauces();
+        Assert.assertTrue("Текст \"Соусы\" не находится в области видимости!",
+                homePage.isElementInViewport(saucesElement));
+
+        // Нажимаем на раздел "Булки"
         homePage.clickSectionBuns();
+
+        // Проверяем, что текст "Булки" появился в области видимости
         sectionElement = homePage.elementTextBuns();
-        Assert.assertTrue("Текст \"Булки\" не находится в области видимости!", homePage.isElementInViewport(sectionElement));
+        Assert.assertTrue("Текст \"Булки\" не находится в области видимости!",
+                homePage.isElementInViewport(sectionElement));
     }
 
     @Test
@@ -42,7 +52,8 @@ public class SectionsOfConstructorTest {
     public void isDisplayedSectionSaucesTest() {
         homePage.clickSectionSauces();
         sectionElement = homePage.elementTextSauces();
-        Assert.assertTrue("Текст \"Соусы\" не находится в области видимости!", homePage.isElementInViewport(sectionElement));
+        Assert.assertTrue("Текст \"Соусы\" не находится в области видимости!",
+                homePage.isElementInViewport(sectionElement));
     }
 
     @Test
@@ -51,7 +62,8 @@ public class SectionsOfConstructorTest {
     public void isDisplayedSectionFillingsTest() {
         homePage.clickSectionFillings();
         sectionElement = homePage.elementTextFillings();
-        Assert.assertTrue("Текст \"Начинки\" не находится в области видимости!", homePage.isElementInViewport(sectionElement));
+        Assert.assertTrue("Текст \"Начинки\" не находится в области видимости!",
+                homePage.isElementInViewport(sectionElement));
     }
 
     @After
@@ -59,6 +71,5 @@ public class SectionsOfConstructorTest {
     @Description("Метод закрывает браузер")
     public void tearDown() {
         driver.quit();
-
     }
 }
