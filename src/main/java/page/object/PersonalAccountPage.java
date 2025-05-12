@@ -5,30 +5,32 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import static constant.UrlAndDuration.*;
+
+import java.time.Duration;
 
 public class PersonalAccountPage {
-    //локатор кнопки "Выход"
-    private static final By BUTTON_EXIT = By.xpath(".//button[@class='Account_button__14Yp3 text text_type_main-medium text_color_inactive' and text()='Выход']");
+    private final WebDriver driver;
+    private final WebDriverWait wait;
+    public final HeaderPage header;
 
-    WebDriver driver;
-
-    public PersonalAccountPage(WebDriver driver){
+    public PersonalAccountPage(WebDriver driver) {
         this.driver = driver;
+        this.wait   = new WebDriverWait(driver, Duration.ofSeconds(5));
+        this.header = new HeaderPage(driver);
     }
 
-    //метод ожидания загрузки страницы и возвращающий true, если осуществился переход на страницу личного кабинета
-    @Step("Переход на страницу личного кабинета")
-    public boolean openingPersonalAccount() {
-        new WebDriverWait(driver, DEFAULT_TIMEOUT)
-                .until(ExpectedConditions.visibilityOfElementLocated(BUTTON_EXIT));
-        return driver.findElement(BUTTON_EXIT).isDisplayed();
+    private final By profileText = By.xpath(
+            "//p[text()='В этом разделе вы можете изменить свои персональные данные']");
+    private final By logoutBtn = By.xpath("//button[text()='Выход']");
+
+    @Step("Получить текст в личном кабинете")
+    public String getProfileText() {
+        return wait.until(ExpectedConditions.visibilityOfElementLocated(profileText))
+                .getText();
     }
 
-    //метод клика по кнопке "Выход"
-    @Step("Клик на кнопку \"Выход\"")
-    public PersonalAccountPage clickButtonExit() {
-        driver.findElement(BUTTON_EXIT).click();
-        return this;
+    @Step("Клик 'Выход'")
+    public void clickLogout() {
+        wait.until(ExpectedConditions.elementToBeClickable(logoutBtn)).click();
     }
 }

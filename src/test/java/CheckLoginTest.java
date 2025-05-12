@@ -1,111 +1,96 @@
-import io.qameta.allure.Description;
+import util.RestClient;
+import io.qameta.allure.Step;
 import io.qameta.allure.junit4.DisplayName;
-import io.restassured.response.ValidatableResponse;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.openqa.selenium.WebDriver;
-import client.BurgerServiceClient;
-import factory.WebDriverFactory;
-import model.Credentials;
 import model.User;
+import org.junit.*;
+import org.openqa.selenium.WebDriver;
 import page.object.*;
-import static org.apache.http.HttpStatus.SC_ACCEPTED;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static constant.Browser.*;
-import static constant.UrlAndDuration.*;
-
+import util.*;
 
 public class CheckLoginTest {
-    private User user;
-    private BurgerServiceClient client;
-    private String token;
-    private Credentials credentials;
+
     private WebDriver driver;
-    private HomePage homePage;
-    private HeaderPage headerPage;
-    private LoginPage loginPage;
-    private RegistrationPage registrationPage;
-    private RecoverPasswordPage recoverPasswordPage;
+    private RestClient api;
+
+    private String email, password, name, accessToken;
+
+    private HomePage home;
+    private LoginPage login;
 
     @Before
-    @DisplayName("Подготовка данных: создание пользователя, инициализация драйвера и страниц перед тестом")
-    @Description("Создание пользователя перед каждым тестом и получение его токена. Настройка WebDriver для браузера и создание экземпляров страниц (HomePage и LoginPage) перед выполнением каждого теста.")
-    public void setUp(){
-        client = new BurgerServiceClient(PAGE_URL);
-        user = User.allField();
-        ValidatableResponse responseCreate = client.createUser(user);
-        responseCreate.assertThat().body("success", equalTo(true));
-        token = responseCreate.extract().header("authorization");
-        credentials = Credentials.fromUser(user);
+    public void setUp() {
+        email = TestDataGenerator.email();
+        password = TestDataGenerator.password();
+        name = TestDataGenerator.name();
 
-        driver = WebDriverFactory.createForName(BROWSER_CHROME);
-        homePage = new HomePage(driver);
-        loginPage = new LoginPage(driver);
-    }
+        api = new RestClient(Config.BASE_URL);
+        accessToken = api.createUser(new User(email, password, name));
 
-    @Test
-    @DisplayName("Проверка входа через кнопку \"Войти в аккаунт\"")
-    @Description("Тест проверяет переход на форму входа со стартовой странице при нажатии на кнопку \"Войти в аккаунт\"")
-    public void viaButtonLoginToAccountTest(){
-        homePage.openingHomePage().clickButtonLoginToAccount();
-        Assert.assertTrue(loginPage.openingLoginForm());
-        loginPage.login(credentials.getEmail(), credentials.getPassword());
-        Assert.assertTrue(homePage.homePageAfterAuthorization());
-    }
-
-    @Test
-    @DisplayName("Проверка входа через кнопку \"Личный кабинет\"")
-    @Description("Тест проверяет переход на форму входа при нажатии на кнопку \"Личный кабинет\" в шапке сайта")
-    public void viaButtonPersonalAccountTest(){
-        homePage.openingHomePage();
-        headerPage = new HeaderPage(driver);
-        headerPage.clickButtonPersonalAccount();
-        Assert.assertTrue(loginPage.openingLoginForm());
-        loginPage.login(credentials.getEmail(), credentials.getPassword());
-        Assert.assertTrue(homePage.homePageAfterAuthorization());
-    }
-
-    @Test
-    @DisplayName("Проверка входа через кнопку \"Войти\" на странице регистрации")
-    @Description("Тест проверяет переход на форму входа при нажатии на кнопку \"Войти\" на странице регистрации")
-    public void viaButtonInRegistrationFormTest(){
-        homePage.openingHomePage();
-        headerPage = new HeaderPage(driver);
-        headerPage.clickButtonPersonalAccount();
-        Assert.assertTrue(loginPage.openingLoginForm());
-        loginPage.clickRegister();
-        registrationPage = new RegistrationPage(driver);
-        Assert.assertTrue(registrationPage.openingRegistrationPage());
-        registrationPage.clickButtonLogin();
-        Assert.assertTrue(loginPage.openingLoginForm());
-        loginPage.login(credentials.getEmail(), credentials.getPassword());
-        Assert.assertTrue(homePage.homePageAfterAuthorization());
-    }
-
-    @Test
-    @DisplayName("Проверка входа через кнопку \"Войти\" на странице восстановления пароля")
-    @Description("Тест проверяет переход на форму входа при нажатии на кнопку \"Войти\" на странице восстановления пароля")
-    public void viaButtonInPasswordRecoveryFormTest(){
-        homePage.openingHomePage().clickButtonLoginToAccount();
-        Assert.assertTrue(loginPage.openingLoginForm());
-        loginPage.clickButtonRecoverPassword();
-        recoverPasswordPage = new RecoverPasswordPage(driver);
-        Assert.assertTrue(recoverPasswordPage.openingPageRecoverPassword());
-        recoverPasswordPage.clickButtonLogin();
-        Assert.assertTrue(loginPage.openingLoginForm());
-        loginPage.login(credentials.getEmail(), credentials.getPassword());
-        Assert.assertTrue(homePage.homePageAfterAuthorization());
+        driver = WebDriverFactory.create();
+        home = new HomePage(driver);
+        login = new LoginPage(driver);
     }
 
     @After
-    @DisplayName("Закрытие браузера и удаление пользователя")
-    @Description("Метод закрывает браузер и удаляет пользователя, созданого перед тестом")
-    public void tearDown(){
+    public void tearDown() {
         driver.quit();
-        ValidatableResponse responseDelete = client.deleteUser(token);
-        responseDelete.assertThat().statusCode(SC_ACCEPTED).body("success", equalTo(true));
+        api.deleteUser(accessToken);
     }
 
+    @Step("Проверка: {0}")
+    private void check(String message, boolean condition) {
+        Assert.assertTrue(message, condition);
+    }
+
+    @Test
+    @DisplayName("Логин через кнопку 'Войти в аккаунт' на главной")
+    public void loginFromMainButton() {
+        home.open(Config.BASE_URL);
+        home.clickLoginButton();
+        check("Форма логина видима", login.isLoginFormVisible());
+
+        login.login(email, password);
+
+        boolean visible = new ConstructorPage(driver).isMenuVisible();
+        check("Конструктор отображается", visible);
+    }
+
+    @Test
+    @DisplayName("Логин через кнопку 'Личный кабинет'")
+    public void loginFromHeader() {
+        home.open(Config.BASE_URL);
+        home.header.clickAccountButton();
+        check("Форма логина видима", login.isLoginFormVisible());
+
+        login.login(email, password);
+        check("Конструктор отображается",
+                new ConstructorPage(driver).isMenuVisible());
+    }
+
+    @Test
+    @DisplayName("Логин через ссылку в форме регистрации")
+    public void loginViaRegistrationForm() {
+        home.open(Config.BASE_URL);
+        home.clickLoginButton();
+        login.goToRegistration();
+        new RegistrationPage(driver).goToLogin();
+
+        login.login(email, password);
+        check("Конструктор отображается",
+                new ConstructorPage(driver).isMenuVisible());
+    }
+
+    @Test
+    @DisplayName("Логин через ссылку в форме восстановления пароля")
+    public void loginFromResetPasswordPageTest() {
+        home.open(Config.BASE_URL);
+        home.header.clickAccountButton();
+
+        login.goToResetPassword();
+        new RecoverPasswordPage(driver).clickLoginLink();
+
+        login.login(email, password);
+        Assert.assertTrue("После логина должен отображаться конструктор",
+                new ConstructorPage(driver).isMenuVisible());
+    }
 }

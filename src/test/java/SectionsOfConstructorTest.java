@@ -1,75 +1,56 @@
-import io.qameta.allure.Description;
 import io.qameta.allure.junit4.DisplayName;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import factory.WebDriverFactory;
-import page.object.HomePage;
-import static constant.Browser.*;
+import page.object.ConstructorPage;
+import page.object.*;
+import util.Config;
+import util.WebDriverFactory;
 
 public class SectionsOfConstructorTest {
+
     private WebDriver driver;
-    private HomePage homePage;
-    private WebElement sectionElement;
+    private HomePage home;
+    private ConstructorPage constructor;
 
     @Before
-    @DisplayName("Инициализация драйвера и страницы, открытие стартовой страницы")
-    @Description("Метод настраивает WebDriver для браузера, создает экземпляр страницы HomePage, открывает стартовую страницу и увеличивает окно браузера до максимального размера")
     public void setUp() {
-        driver = WebDriverFactory.createForName(BROWSER_CHROME);
-        homePage = new HomePage(driver);
-        homePage.openingHomePage();
-        driver.manage().window().maximize();
-    }
+        driver      = WebDriverFactory.create();
+        home        = new HomePage(driver);
+        constructor = new ConstructorPage(driver);
 
-    @Test
-    @DisplayName("Проверка перехода к разделу \"Булки\" после клика по разделу \"Соусы\"")
-    @Description("Тест проверяет, что текст раздела \"Булки\" находится в области видимости после перехода из раздела \"Соусы\".")
-    public void isDisplayedSectionBunsTest() {
-        // Нажимаем на раздел "Соусы"
-        homePage.clickSectionSauces();
-
-        // Получаем элемент раздела "Соусы" и проверяем его видимость
-        WebElement saucesElement = homePage.elementTextSauces();
-        Assert.assertTrue("Текст \"Соусы\" не находится в области видимости!",
-                homePage.isElementInViewport(saucesElement));
-
-        // Нажимаем на раздел "Булки"
-        homePage.clickSectionBuns();
-
-        // Проверяем, что текст "Булки" появился в области видимости
-        sectionElement = homePage.elementTextBuns();
-        Assert.assertTrue("Текст \"Булки\" не находится в области видимости!",
-                homePage.isElementInViewport(sectionElement));
-    }
-
-    @Test
-    @DisplayName("Проверка перехода к разделу \"Соусы\"")
-    @Description("Тест проверяет, что текст раздела \"Соусы\" находится в области видимости.")
-    public void isDisplayedSectionSaucesTest() {
-        homePage.clickSectionSauces();
-        sectionElement = homePage.elementTextSauces();
-        Assert.assertTrue("Текст \"Соусы\" не находится в области видимости!",
-                homePage.isElementInViewport(sectionElement));
-    }
-
-    @Test
-    @DisplayName("Проверка перехода к разделу \"Начинки\"")
-    @Description("Тест проверяет, что текст раздела \"Начинки\" находится в области видимости.")
-    public void isDisplayedSectionFillingsTest() {
-        homePage.clickSectionFillings();
-        sectionElement = homePage.elementTextFillings();
-        Assert.assertTrue("Текст \"Начинки\" не находится в области видимости!",
-                homePage.isElementInViewport(sectionElement));
+        home.open(Config.BASE_URL);
     }
 
     @After
-    @DisplayName("Закрытие браузера")
-    @Description("Метод закрывает браузер")
     public void tearDown() {
         driver.quit();
+    }
+
+    @Test
+    @DisplayName("Таб 'Булки' отображается")
+    public void bunsTabVisible() {
+        constructor.isMenuVisible();
+        home.header.clickConstructorButton();
+        constructor.clickSauceTab(); // переключаемся, потом назад
+        constructor.clickBunTab();
+        Assert.assertTrue(constructor.isBunSectionVisible());
+    }
+
+    @Test
+    @DisplayName("Таб 'Соусы' отображается")
+    public void saucesTabVisible() {
+        constructor.isMenuVisible();
+        home.header.clickConstructorButton();
+        constructor.clickSauceTab();
+        Assert.assertTrue(constructor.isSauceSectionVisible());
+    }
+
+    @Test
+    @DisplayName("Таб 'Начинки' отображается")
+    public void fillingsTabVisible() {
+        constructor.isMenuVisible();
+        home.header.clickConstructorButton();
+        constructor.clickFillingTab();
+        Assert.assertTrue(constructor.isFillingSectionVisible());
     }
 }
